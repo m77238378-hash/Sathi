@@ -1,0 +1,97 @@
+{
+  "entities": {
+    "booking": {
+      "title": "Consultation Booking",
+      "description": "A scheduled virtual consultation with Vaidya Dr. Sushil Gaur.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who scheduled the consultation" },
+        "type": { "type": "string", "description": "Discipline/type of consultation" },
+        "date": { "type": "string", "description": "Target date (YYYY-MM-DD)" },
+        "time": { "type": "string", "description": "Target time slot" },
+        "meetingUri": { "type": "string", "description": "Google Meet web URI link" },
+        "meetingCode": { "type": "string", "description": "Meet code or space identifier" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation" },
+        "notes": { "type": "string", "description": "Patient notes containing physical symptoms and dry vs fluid observations" }
+      },
+      "required": ["userId", "type", "date", "time", "meetingUri", "meetingCode", "createdAt"]
+    },
+    "inquiry": {
+      "title": "Compounding Inquiry",
+      "description": "An inquiry placed for customized traditional medicine compounding.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user placing the compounding request" },
+        "name": { "type": "string", "description": "Full name of the patient" },
+        "email": { "type": "string", "description": "Optional email address of the patient" },
+        "phone": { "type": "string", "description": "Contact number (verified for counter delivery notifications)" },
+        "anupanaPreference": { "type": "string", "description": "Sanskrit intake carrier preference" },
+        "consultationNotes": { "type": "string", "description": "Symptom history and compounding notes" },
+        "selectedPaymentMethod": { "type": "string", "enum": ["gpay", "traditional"], "description": "Payment and compounding pathway chosen" },
+        "totalPrice": { "type": "number", "description": "Total checkout price in Indian Rupees (INR)" },
+        "status": { "type": "string", "enum": ["submitted", "processing", "ready", "cancelled"], "description": "Fulfillment status of custom compounds" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation" },
+        "items": { "type": "array", "description": "List of compounds queued in the cart" }
+      },
+      "required": ["userId", "name", "phone", "anupanaPreference", "selectedPaymentMethod", "totalPrice", "status", "createdAt", "items"]
+    },
+    "quiz_result": {
+      "title": "Quiz Result",
+      "description": "Historical record of an Ayurvedic Tridosha evaluation.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who completed the quiz" },
+        "doshaResult": { "type": "object", "description": "Breakdown percentages for Vata, Pitta, and Kapha" },
+        "dominantDosha": { "type": "string", "description": "The determined primary constitution type" },
+        "completedAt": { "type": "string", "format": "date-time", "description": "Timestamp of quiz completion" }
+      },
+      "required": ["userId", "doshaResult", "dominantDosha", "completedAt"]
+    },
+    "newsletter_subscriber": {
+      "title": "Newsletter Subscriber",
+      "description": "Email address and subscription date for seasonal health tips and remedies.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "description": "Subscribed email address" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp when they subscribed" }
+      },
+      "required": ["email", "createdAt"]
+    },
+    "remedy_feedback": {
+      "title": "Remedy Feedback",
+      "description": "A dynamic review or rating submitted by a customer for an individual catalog remedy.",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string", "description": "Catalog item ID being reviewed" },
+        "userId": { "type": "string", "description": "UID of the reviewer" },
+        "displayName": { "type": "string", "description": "Reviewer's visible name or nickname" },
+        "rating": { "type": "number", "description": "Feedback score from 1 to 5 stars" },
+        "comment": { "type": "string", "description": "User's written experience or review comment" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of review submission" }
+      },
+      "required": ["productId", "userId", "displayName", "rating", "comment", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/bookings/{bookingId}": {
+      "schema": "booking",
+      "description": "Virtual Vaidya Google Meet consultation bookings scheduled by patients."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "inquiry",
+      "description": "Traditional compounding recipes queued for counter counter dispensing."
+    },
+    "/quiz_results/{resultId}": {
+      "schema": "quiz_result",
+      "description": "Historical Nadi Pariksha quiz records stored for constitutional monitoring."
+    },
+    "/newsletter_subscribers/{subscriberId}": {
+      "schema": "newsletter_subscriber",
+      "description": "Client email records opted in for health newsletters."
+    },
+    "/remedy_feedbacks/{feedbackId}": {
+      "schema": "remedy_feedback",
+      "description": "Persistent customer reviews and efficacy feedback for each formula."
+    }
+  }
+}

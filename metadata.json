@@ -1,0 +1,6 @@
+{
+  "name": "Mangalam Ayurveda Catalogue",
+  "description": "Interactive product catalogue for Mangalam Ayurveda Aushadh Bhandar, featuring categorized traditional medicines, ingredient benefits, search tools, and personalized Nadi Pariksha insights.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

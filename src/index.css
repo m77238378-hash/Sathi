@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+/* Optional custom smooth scroll & base styles matching the elegant Ayurvedic motif */
+html {
+  scroll-behavior: smooth;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* Hide default scrollbars elegant styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #faf8f4;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dcd7cd;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c2b9a7;
+}
