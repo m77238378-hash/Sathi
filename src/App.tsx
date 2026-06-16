@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Search, 
   Filter, 
+  Calendar, 
   MapPin, 
   Phone, 
   Mail, 
@@ -58,6 +59,7 @@ import drSushilPhoto from './assets/images/Dr_Sushil_Gaur.jpg';
 import DoshaDistributionChart, { QuizCompletion } from './components/DoshaDistributionChart';
 import EducationalWorkshops from './components/EducationalWorkshops';
 import GoogleMeetConsultation from './components/GoogleMeetConsultation';
+import CompoundingWorkerPool from './components/CompoundingWorkerPool';
 import { generateReportPDF } from './utils/pdfGenerator';
 import GoogleDriveVault from './components/GoogleDriveVault';
 import GoogleContactsDirectory from './components/GoogleContactsDirectory';
@@ -195,6 +197,120 @@ const QUIZ_QUESTIONS = [
 
 // Replaced with centralized firebase/auth instances exported by src/utils/firebase.ts
 
+export interface Ritu {
+  id: string;
+  name: string;
+  sanskritName: string;
+  englishSeason: string;
+  months: string;
+  doshaInfluence: string;
+  recommendedApproach: string;
+  colorTheme: string;
+}
+
+export const RITUS: Ritu[] = [
+  {
+    id: 'all',
+    name: 'All Seasons',
+    sanskritName: 'सर्व ऋतु',
+    englishSeason: 'Year-Round Balance',
+    months: 'Jan - Dec',
+    doshaInfluence: 'Tridosha Harmony',
+    recommendedApproach: 'Maintain constitutional equilibrium with holistic daily tonics.',
+    colorTheme: 'stone'
+  },
+  {
+    id: 'vasanta',
+    name: 'Vasanta',
+    sanskritName: 'वसन्त',
+    englishSeason: 'Spring',
+    months: 'Mid-March to Mid-May',
+    doshaInfluence: 'Kapha Liquidation',
+    recommendedApproach: 'Gentle detoxification, respiratory warming, liver stoking.',
+    colorTheme: 'emerald'
+  },
+  {
+    id: 'grishma',
+    name: 'Grishma',
+    sanskritName: 'ग्रीष्म',
+    englishSeason: 'Summer',
+    months: 'Mid-May to Mid-July',
+    doshaInfluence: 'Pitta & Dehydration',
+    recommendedApproach: 'Cooling therapies, heavy sweet restoratives, stress-calming herbs.',
+    colorTheme: 'amber'
+  },
+  {
+    id: 'varsha',
+    name: 'Varsha',
+    sanskritName: 'वर्षा',
+    englishSeason: 'Monsoon',
+    months: 'Mid-July to Mid-Sept',
+    doshaInfluence: 'Vata Aggravation',
+    recommendedApproach: 'Ignite digestive fire (Agni), dry warm elements, joint lubrication.',
+    colorTheme: 'indigo'
+  },
+  {
+    id: 'sharad',
+    name: 'Sharad',
+    sanskritName: 'शरद',
+    englishSeason: 'Autumn',
+    months: 'Mid-Sept to Mid-Nov',
+    doshaInfluence: 'Pitta Heat Overflow',
+    recommendedApproach: 'Bile purification, liver support, cooling bitter compounds.',
+    colorTheme: 'rose'
+  },
+  {
+    id: 'hemanta',
+    name: 'Hemanta',
+    sanskritName: 'हेमन्त',
+    englishSeason: 'Early Winter',
+    months: 'Mid-Nov to Mid-Jan',
+    doshaInfluence: 'Strong Agni & Cold Vata',
+    recommendedApproach: 'Rich nutritive jams, heavy ghee bases, joint warmth.',
+    colorTheme: 'amber'
+  },
+  {
+    id: 'shishira',
+    name: 'Shishira',
+    sanskritName: 'शिशिर',
+    englishSeason: 'Late Winter',
+    months: 'Mid-Jan to Mid-March',
+    doshaInfluence: 'Kapha Accumulation',
+    recommendedApproach: 'Respiratory immunity fortification, muscle and marrow energy.',
+    colorTheme: 'gold'
+  }
+];
+
+export const getCurrentRituId = (): string => {
+  const month = new Date().getMonth(); // 0-11
+  const day = new Date().getDate();
+  
+  if (month === 2) { // March
+    return day >= 15 ? 'vasanta' : 'shishira';
+  }
+  if (month === 3) return 'vasanta'; // April
+  if (month === 4) { // May
+    return day < 15 ? 'vasanta' : 'grishma';
+  }
+  if (month === 5) return 'grishma'; // June
+  if (month === 6) { // July
+    return day < 15 ? 'grishma' : 'varsha';
+  }
+  if (month === 7) return 'varsha'; // August
+  if (month === 8) { // September
+    return day < 15 ? 'varsha' : 'sharad';
+  }
+  if (month === 9) return 'sharad'; // October
+  if (month === 10) { // November
+    return day < 15 ? 'sharad' : 'hemanta';
+  }
+  if (month === 11) return 'hemanta'; // December
+  if (month === 0) { // January
+    return day < 15 ? 'hemanta' : 'shishira';
+  }
+  return 'shishira'; // February is shishira
+};
+
 export default function App() {
   // Auth State
   const [user, setUser] = useState<User | null>(null);
@@ -204,8 +320,67 @@ export default function App() {
 
   // State Management
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Real-time search suggestions state
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Compute suggestions based on name, sanskrit name, category or indications
+  const searchSuggestions = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase().trim();
+    return PRODUCTS.filter(product => {
+      return (
+        product.name.toLowerCase().includes(query) ||
+        product.sanskritName.includes(query) ||
+        product.category.toLowerCase().includes(query) ||
+        product.indications.some(ind => ind.toLowerCase().includes(query))
+      );
+    }).slice(0, 5); // Limit to top 5 suggestions
+  }, [searchQuery]);
+
+  // Click outside listener for suggestions menu
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || searchSuggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveSuggestionIndex(prev => 
+        prev < searchSuggestions.length - 1 ? prev + 1 : 0
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveSuggestionIndex(prev => 
+        prev > 0 ? prev - 1 : searchSuggestions.length - 1
+      );
+    } else if (e.key === 'Enter') {
+      if (activeSuggestionIndex >= 0 && activeSuggestionIndex < searchSuggestions.length) {
+        e.preventDefault();
+        const selected = searchSuggestions[activeSuggestionIndex];
+        setSearchQuery(selected.name);
+        setShowSuggestions(false);
+      }
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      e.currentTarget.blur();
+    }
+  };
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedIndication, setSelectedIndication] = useState('all');
+  const [selectedSeason, setSelectedSeason] = useState('all');
   const [isFeaturedOnly, setIsFeaturedOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -688,10 +863,11 @@ export default function App() {
       const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
       const matchesIndication = selectedIndication === 'all' || product.indications.includes(selectedIndication);
       const matchesFeatured = !isFeaturedOnly || product.featured;
+      const matchesSeason = selectedSeason === 'all' || (product.seasons && product.seasons.includes(selectedSeason));
 
-      return matchesSearch && matchesCategory && matchesIndication && matchesFeatured;
+      return matchesSearch && matchesCategory && matchesIndication && matchesFeatured && matchesSeason;
     });
-  }, [searchQuery, selectedCategory, selectedIndication, isFeaturedOnly]);
+  }, [searchQuery, selectedCategory, selectedIndication, isFeaturedOnly, selectedSeason]);
 
   // Cart Management
   const addToCart = (product: Product, size: string) => {
@@ -1470,26 +1646,176 @@ export default function App() {
                 <Search className="w-4 h-4 text-amber-800" />
                 Quick Formulary Search
               </h3>
-              <div className="relative">
+              <div className="relative" ref={searchContainerRef}>
                 <input
                   type="text"
                   placeholder="e.g., Shilajit, Triphala, Joints..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSuggestions(true);
+                    setActiveSuggestionIndex(-1);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onKeyDown={handleSearchKeyDown}
                   className="w-full bg-[#fdfdfc] border border-stone-300 rounded-lg py-2 pl-3 pr-10 text-stone-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-700/30 focus:border-amber-700"
                 />
                 {searchQuery && (
                   <button 
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => {
+                      setSearchQuery('');
+                      setShowSuggestions(false);
+                      setActiveSuggestionIndex(-1);
+                    }}
                     className="absolute right-2 top-2.5 text-stone-400 hover:text-stone-600"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 )}
+
+                {/* REAL-TIME QUICK SEARCH SUGGESTION DROPDOWN */}
+                {showSuggestions && searchSuggestions.length > 0 && (
+                  <div className="absolute left-0 right-0 z-50 mt-1 max-h-64 overflow-y-auto bg-white border border-stone-200 shadow-xl rounded-lg divide-y divide-stone-100">
+                    {searchSuggestions.map((product, idx) => {
+                      const isHighlighted = idx === activeSuggestionIndex;
+                      return (
+                        <div
+                          key={product.id}
+                          onClick={() => {
+                            setSearchQuery(product.name);
+                            setShowSuggestions(false);
+                          }}
+                          onMouseEnter={() => setActiveSuggestionIndex(idx)}
+                          className={`flex items-center justify-between px-3.5 py-2.5 cursor-pointer transition-colors duration-150 ${
+                            isHighlighted ? 'bg-amber-50 text-amber-950' : 'text-stone-700 hover:bg-stone-50'
+                          }`}
+                        >
+                          <div className="flex flex-col min-w-0 pr-2">
+                            <span className="text-xs font-serif font-bold truncate leading-tight">
+                              {product.name}
+                            </span>
+                            <span className="text-[10px] text-amber-800/80 italic font-medium leading-none mt-0.5">
+                              {product.sanskritName}
+                            </span>
+                          </div>
+                          
+                          <div className="text-right flex items-center gap-1.5 shrink-0">
+                            {product.category === 'Asava-Arishta' && (
+                              <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded-sm bg-blue-100 text-blue-800 font-bold">Arishta</span>
+                            )}
+                            {product.category === 'Vati-Gutika' && (
+                              <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded-sm bg-emerald-100 text-emerald-800 font-bold">Vati</span>
+                            )}
+                            {product.category === 'Churna' && (
+                              <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded-sm bg-amber-100 text-amber-900 font-bold">Churna</span>
+                            )}
+                            {product.category === 'Rasayana-Lehya' && (
+                              <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded-sm bg-purple-100 text-purple-800 font-bold">Rasayana</span>
+                            )}
+                            {product.category === 'Taila-Ghrita' && (
+                              <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded-sm bg-amber-200 text-amber-950 font-bold">Taila</span>
+                            )}
+                            {product.category === 'Bhasma' && (
+                              <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded-sm bg-rose-100 text-rose-800 font-bold">Bhasma</span>
+                            )}
+                            <span className="text-[10px] font-mono text-stone-400">
+                              ₹{product.price}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
               <p className="text-[10px] text-stone-500 mt-2">
                 Matches remedy name, sanskrit scriptures, ingredients, and medicinal indications.
               </p>
+            </div>
+
+            {/* Seasonally Recommended (Ayurvedic Ritus) */}
+            <div className="bg-white rounded-xl p-5 border border-amber-900/15 shadow-xs">
+              <h3 className="font-serif text-lg font-bold text-amber-950 mb-2.5 flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-amber-800" />
+                  Seasonal Rhythms (ऋतु)
+                </span>
+                <span className="text-[10px] bg-red-10 px-2 py-0.5 rounded-full animate-pulse flex items-center gap-1 text-red-850 font-black tracking-wide border border-red-300">
+                  ⬤ Live Ritu
+                </span>
+              </h3>
+              <p className="text-[11px] text-stone-500 mb-4 leading-relaxed">
+                Indian medicine aligns healing to the 6 classical seasons. Select a Ritu to list remedies traditionally prescribed to balance the active dosha.
+              </p>
+
+              {/* Ritu Active Selector Card */}
+              <div className="mb-4 p-3 rounded-lg bg-amber-50/50 border border-amber-200/50 text-xs text-amber-955">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-bold text-[10px] text-amber-900 uppercase tracking-widest">Active Season:</span>
+                  <button 
+                    onClick={() => setSelectedSeason(getCurrentRituId())} 
+                    className="font-mono text-[9px] underline font-black text-amber-700 hover:text-amber-950 focus:outline-none cursor-pointer border-none bg-transparent"
+                    title="Jump to current season"
+                  >
+                    Quick Filter to {RITUS.find(r => r.id === getCurrentRituId())?.name} ✦
+                  </button>
+                </div>
+                {(() => {
+                  const currRitu = RITUS.find(r => r.id === getCurrentRituId());
+                  return currRitu ? (
+                    <div className="space-y-1 text-left">
+                      <div className="flex items-center gap-1.5 font-serif font-black text-sm text-amber-955">
+                        {currRitu.name} ({currRitu.sanskritName}) - <span className="font-sans font-medium text-xs text-stone-600">{currRitu.englishSeason}</span>
+                      </div>
+                      <p className="text-[10px] text-stone-600 leading-relaxed font-serif italic">
+                        "{currRitu.months} | {currRitu.recommendedApproach}"
+                      </p>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+
+              <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+                {RITUS.map(ritu => {
+                  const isCurrent = ritu.id === getCurrentRituId();
+                  const isSelected = selectedSeason === ritu.id;
+                  return (
+                    <button
+                      key={ritu.id}
+                      onClick={() => setSelectedSeason(ritu.id)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all duration-200 flex items-center justify-between cursor-pointer border-none ${
+                        isSelected
+                          ? 'bg-amber-950 text-[#faf2e6] shadow-xs translate-x-1 font-bold'
+                          : 'text-stone-700 hover:bg-stone-50 hover:text-stone-950'
+                      }`}
+                    >
+                      <div className="flex flex-col text-left">
+                        <div className="flex items-center gap-1.5 animate-none">
+                          <span className="font-semibold">{ritu.name}</span>
+                          <span className="text-[10px] text-amber-700/80 font-serif">({ritu.sanskritName})</span>
+                          {isCurrent && (
+                            <span className="text-[8px] bg-red-100 text-red-800 font-extrabold px-1 rounded-sm uppercase tracking-wide">
+                              Current
+                            </span>
+                          )}
+                        </div>
+                        <span className={`text-[10px] leading-tight mt-0.5 ${
+                          isSelected ? 'text-amber-250' : 'text-stone-400'
+                        }`}>
+                          {ritu.englishSeason} • {ritu.months}
+                        </span>
+                      </div>
+                      {productCountForSeason(ritu.id) > 0 && (
+                        <span className={`text-[10px] py-0.5 px-2 rounded-full font-bold ml-1 ${
+                          isSelected ? 'bg-amber-800 text-white' : 'bg-stone-100 text-[#713f12]'
+                        }`}>
+                          {productCountForSeason(ritu.id)}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Ayurvedic Categories List */}
@@ -1614,7 +1940,7 @@ export default function App() {
                   Showing <strong className="text-[#8a5a36]">{filteredProducts.length}</strong> Ayurvedic products based on your criteria
                 </p>
                 {/* Active filters breadcrumbs */}
-                {(selectedCategory !== 'all' || selectedIndication !== 'all' || searchQuery || isFeaturedOnly) && (
+                {(selectedCategory !== 'all' || selectedIndication !== 'all' || selectedSeason !== 'all' || searchQuery || isFeaturedOnly) && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {selectedCategory !== 'all' && (
                       <span className="text-[10px] bg-amber-50 text-amber-900 px-2 py-0.5 rounded-sm border border-amber-200">
@@ -1626,8 +1952,13 @@ export default function App() {
                         Indication: {selectedIndication}
                       </span>
                     )}
+                    {selectedSeason !== 'all' && (
+                      <span className="text-[10px] bg-amber-55 text-amber-900 px-2 py-0.5 rounded-sm border border-amber-200">
+                        Ritu: {RITUS.find(r => r.id === selectedSeason)?.name || selectedSeason}
+                      </span>
+                    )}
                     {searchQuery && (
-                      <span className="text-[10px] bg-stone-100 text-stone-700 px-2 py-0.5 rounded-sm">
+                      <span className="text-[10px] bg-stone-100 text-stone-700 px-2 py-0.5 rounded-sm font-semibold">
                         Query: "{searchQuery}"
                       </span>
                     )}
@@ -1640,10 +1971,11 @@ export default function App() {
                       onClick={() => {
                         setSelectedCategory('all');
                         setSelectedIndication('all');
+                        setSelectedSeason('all');
                         setSearchQuery('');
                         setIsFeaturedOnly(false);
                       }}
-                      className="text-[10px] text-amber-800 font-bold hover:underline ml-1"
+                      className="text-[10px] text-amber-800 font-bold hover:underline ml-1 cursor-pointer bg-transparent border-none"
                     >
                       Clear All
                     </button>
@@ -1780,6 +2112,28 @@ export default function App() {
                               </span>
                             ))}
                           </div>
+
+                          {/* Recommended Seasons (Ritus) */}
+                          <div className="flex flex-wrap gap-1.5 mt-3 items-center">
+                            <span className="text-[10px] font-mono text-stone-400 mr-2 uppercase tracking-wide">Seasonal Alignment (Ritu):</span>
+                            {product.seasons.map(sid => {
+                              const r = RITUS.find(ritu => ritu.id === sid);
+                              const isCurrent = sid === getCurrentRituId();
+                              return r ? (
+                                <span 
+                                  key={sid} 
+                                  className={`text-[10px] px-2 py-0.5 rounded font-serif italic border ${
+                                    isCurrent 
+                                      ? 'bg-red-50 text-red-900 border-red-200 font-extrabold' 
+                                      : 'bg-amber-50 text-amber-900 border-amber-900/10'
+                                  }`}
+                                  title={`${r.name} Ritu (${r.englishSeason}) — ${r.recommendedApproach}`}
+                                >
+                                  {r.name} {isCurrent ? '• Active' : ''}
+                                </span>
+                              ) : null;
+                            })}
+                          </div>
                         </div>
 
                         {/* Action trigger deck */}
@@ -1892,6 +2246,28 @@ export default function App() {
                                 ✚ {ind}
                               </span>
                             ))}
+                          </div>
+
+                          {/* Recommended Seasons (Ritus) */}
+                          <div className="flex flex-wrap gap-1 items-center pt-1 overflow-x-auto text-left">
+                            <span className="text-[9px] font-mono text-stone-400 mr-1 uppercase">Ritus:</span>
+                            {product.seasons.map(sid => {
+                              const r = RITUS.find(ritu => ritu.id === sid);
+                              const isCurrent = sid === getCurrentRituId();
+                              return r ? (
+                                <span 
+                                  key={sid} 
+                                  className={`text-[9.5px] px-1 py-0.5 rounded font-serif italic border ${
+                                    isCurrent 
+                                      ? 'bg-red-50 text-red-900 border-red-200 font-extrabold' 
+                                      : 'bg-[#fdfcf7] text-amber-900 border-amber-900/10'
+                                  }`}
+                                  title={`${r.name} Ritu - ${r.englishSeason}`}
+                                >
+                                  {r.name}
+                                </span>
+                              ) : null;
+                            })}
                           </div>
                         </div>
                       </div>
@@ -2019,6 +2395,11 @@ export default function App() {
 
         </div>
 
+        {/* Dynamic Multi-Threaded Compounding Laboratory & Worker Pool */}
+        <div className="mt-10">
+          <CompoundingWorkerPool />
+        </div>
+
         {/* E. Google Meet Virtual Clinic Consultation */}
         <div className="mt-10">
           <GoogleMeetConsultation />
@@ -2118,6 +2499,44 @@ export default function App() {
                 <p className="text-stone-600 text-xs md:text-sm">
                   {selectedProduct.description}
                 </p>
+              </div>
+
+              {/* Seasonal Alignment Section */}
+              <div className="bg-[#fcfbf9] border border-amber-900/10 p-4 rounded-xl space-y-2 text-left">
+                <h4 className="font-serif font-black text-amber-900 text-sm flex items-center gap-1.5 uppercase tracking-wide">
+                  <Calendar className="w-4 h-4 cursor-default" /> Traditional Seasonal Rasayana Alignment
+                </h4>
+                <p className="text-[11px] text-stone-500 leading-relaxed">
+                  In Ayurvedic Chikitsa, remedies yield optimized potency and prevent dosha imbalance when aligned to the specific *Ritus* (seasons). This formula is classically recommended for balancing the doshas during:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  {selectedProduct.seasons.map(sid => {
+                    const r = RITUS.find(ritu => ritu.id === sid);
+                    const isCurrent = sid === getCurrentRituId();
+                    return r ? (
+                      <div key={sid} className={`px-2.5 py-2 rounded-lg border flex flex-col text-left text-xs ${
+                        isCurrent 
+                          ? 'bg-amber-50/80 text-[#301b10] border-amber-400' 
+                          : 'bg-white text-stone-800 border-stone-200'
+                      }`}>
+                        <div className="flex items-center gap-1 font-bold">
+                          <span>{r.name} Ritu ({r.sanskritName})</span>
+                          {isCurrent && (
+                            <span className="text-[8px] bg-red-105 text-red-800 font-extrabold px-1 rounded-sm uppercase tracking-wide">
+                              Active Season
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-stone-500 mt-0.5">
+                          {r.englishSeason} ({r.months})
+                        </span>
+                        <span className="text-[9.5px] text-[#8a5a36] mt-0.5 italic leading-snug">
+                          {r.recommendedApproach}
+                        </span>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
               </div>
 
               {/* Composition ingredients mapping */}
@@ -2850,6 +3269,11 @@ export default function App() {
         </div>
       )}
 
+      {/* Dynamic CTA Banner Insertion */}
+      <div className="max-w-7xl mx-auto px-4 my-10" id="mab-dynamic-cta">
+        <div rrm-inline-cta="3595208f-82a5-4bdb-a424-899fb737ed2b"></div>
+      </div>
+
       {/* 6. Footer section */}
       <footer id="mab-footer" className="bg-[#1f1610] text-[#ead8c5] py-12 border-t border-amber-900/20 text-xs md:text-sm">
         
@@ -3302,5 +3726,11 @@ export default function App() {
   function productCountForCategory(catId: string) {
     if (catId === 'all') return PRODUCTS.length;
     return PRODUCTS.filter(p => p.category === catId).length;
+  }
+
+  // Helper utility to dynamically query how many products map to an Indian season
+  function productCountForSeason(seasonId: string) {
+    if (seasonId === 'all') return PRODUCTS.length;
+    return PRODUCTS.filter(p => p.seasons && p.seasons.includes(seasonId)).length;
   }
 }

@@ -20,6 +20,7 @@ export interface Product {
   colorTheme: 'amber' | 'emerald' | 'crimson' | 'gold' | 'brown' | 'indigo';
   iconType: 'leaf' | 'pill' | 'flask' | 'droplet' | 'pouch' | 'gem';
   featured?: boolean;
+  seasons: string[]; // Ayurvedic Ritus recommending this product
 }
 
 export const CATEGORIES = [
@@ -68,7 +69,8 @@ export const PRODUCTS: Product[] = [
     stock: 24,
     colorTheme: 'brown',
     iconType: 'leaf',
-    featured: true
+    featured: true,
+    seasons: ['hemanta', 'shishira', 'varsha'] // Late Autumn, Winter, Monsoon
   },
   {
     id: 'p2',
@@ -91,7 +93,8 @@ export const PRODUCTS: Product[] = [
     stock: 42,
     colorTheme: 'emerald',
     iconType: 'pill',
-    featured: true
+    featured: true,
+    seasons: ['vasanta', 'sharad', 'shishira'] // Spring, Autumn, Late Winter
   },
   {
     id: 'p3',
@@ -112,7 +115,8 @@ export const PRODUCTS: Product[] = [
     stock: 50,
     colorTheme: 'gold',
     iconType: 'pouch',
-    featured: true
+    featured: true,
+    seasons: ['vasanta', 'sharad', 'varsha'] // Spring, Autumn, Monsoon detox
   },
   {
     id: 'p4',
@@ -135,7 +139,8 @@ export const PRODUCTS: Product[] = [
     stock: 18,
     colorTheme: 'amber',
     iconType: 'flask',
-    featured: false
+    featured: false,
+    seasons: ['hemanta', 'shishira', 'varsha'] // Winter, Late Winter, Monsoon
   },
   {
     id: 'p5',
@@ -158,7 +163,8 @@ export const PRODUCTS: Product[] = [
     stock: 22,
     colorTheme: 'amber',
     iconType: 'flask',
-    featured: false
+    featured: false,
+    seasons: ['grishma', 'varsha', 'sharad'] // Summer, Monsoon, Autumn
   },
   {
     id: 'p6',
@@ -180,7 +186,8 @@ export const PRODUCTS: Product[] = [
     stock: 35,
     colorTheme: 'emerald',
     iconType: 'pill',
-    featured: false
+    featured: false,
+    seasons: ['vasanta', 'sharad'] // Spring, Autumn liver cleansing
   },
   {
     id: 'p7',
@@ -199,7 +206,8 @@ export const PRODUCTS: Product[] = [
     stock: 3,
     colorTheme: 'crimson',
     iconType: 'gem',
-    featured: false
+    featured: false,
+    seasons: ['hemanta', 'shishira'] // Strong winter digestion needed for heavy iron elements
   },
   {
     id: 'p8',
@@ -221,7 +229,8 @@ export const PRODUCTS: Product[] = [
     stock: 30,
     colorTheme: 'gold',
     iconType: 'droplet',
-    featured: true
+    featured: true,
+    seasons: ['hemanta', 'shishira', 'varsha'] // Winter, Late Winter, Wet monsoon joint pain relief
   },
   {
     id: 'p9',
@@ -243,7 +252,8 @@ export const PRODUCTS: Product[] = [
     stock: 40,
     colorTheme: 'indigo',
     iconType: 'pouch',
-    featured: false
+    featured: false,
+    seasons: ['grishma', 'sharad'] // Summer & Autumn Pitta cleansing
   },
   {
     id: 'p10',
@@ -265,6 +275,7 @@ export const PRODUCTS: Product[] = [
     stock: 4,
     colorTheme: 'brown',
     iconType: 'leaf',
-    featured: true
+    featured: true,
+    seasons: ['grishma', 'hemanta', 'shishira'] // Summer cooling shield & Deep Winter nourishment
   }
 ];
