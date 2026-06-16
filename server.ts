@@ -4,7 +4,7 @@ import * as dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import { db } from "./src/db/index.ts";
 import { users, newsletterSubscribers, inquiries, quizResults, bookings, remedyFeedbacks } from "./src/db/schema.ts";
-import { requireAuth, AuthRequest } from "./src/middleware/auth.ts";
+import { requireAuth, AuthRequest } from "./src/utils/middleware/auth.ts";
 import { eq, desc, and } from "drizzle-orm";
 
 dotenv.config();

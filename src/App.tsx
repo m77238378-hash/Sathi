@@ -49,7 +49,7 @@ import { subscribeNewsletter, submitCompoundingInquiry, saveQuizResultInCloudSQL
 import RemedyFeedbackSection from './components/RemedyFeedbackSection';
 import AuthModal from './components/AuthModal';
 import PrivacyPolicyModal from './components/PrivacyPolicyModal';
-import { PRODUCTS, CATEGORIES, INDICATIONS, Product } from './data/products';
+import { PRODUCTS, CATEGORIES, INDICATIONS, Product } from '../data/products';
 import ProductPlaceholderImage from './components/ProductPlaceholderImage';
 import CompareProductsModal from './components/CompareProductsModal';
 // @ts-ignore
@@ -65,6 +65,7 @@ import GoogleDriveVault from './components/GoogleDriveVault';
 import GoogleContactsDirectory from './components/GoogleContactsDirectory';
 import { uploadReportToDrive } from './utils/googleDrive';
 import DailyAyurvedicWisdom from './components/DailyAyurvedicWisdom';
+import SeasonalWellnessBanner from './components/SeasonalWellnessBanner';
 import { motion, AnimatePresence } from 'motion/react';
 
 const QUIZ_QUESTIONS = [
@@ -1932,6 +1933,12 @@ export default function App() {
             
             {/* Daily Ayurvedic Wisdom Component */}
             <DailyAyurvedicWisdom />
+
+            {/* Seasonal Ritucharya Guidance Banner */}
+            <SeasonalWellnessBanner 
+              selectedSeason={selectedSeason} 
+              onClearSeason={() => setSelectedSeason('all')} 
+            />
             
             {/* Display / Layout Settings Ribbon */}
             <div className="bg-white rounded-xl px-5 py-4 border border-amber-900/15 flex flex-col sm:flex-row justify-between items-center gap-4">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Leaf, Award, Compass, Pill, FileCode2, Droplets, Sparkles, Sprout, Image as ImageIcon, Binary } from 'lucide-react';
-import { Product } from '../data/products';
+import { Product } from '../../data/products';
 // @ts-ignore
 import productImage from '../assets/images/Product.png';
 

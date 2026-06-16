@@ -8,7 +8,7 @@ import {
   ArrowRight,
   Leaf
 } from 'lucide-react';
-import { PRODUCTS, Product } from '../data/products';
+import { PRODUCTS, Product } from '../../data/products';
 import ProductPlaceholderImage from './ProductPlaceholderImage';
 
 interface WishlistDrawerProps {

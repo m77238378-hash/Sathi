@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { Product } from '../data/products';
+import { Product } from '../../data/products';
 
 interface ScoreSet {
   vata: number;

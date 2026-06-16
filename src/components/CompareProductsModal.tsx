@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, CheckCircle, Flame, Leaf, HelpCircle, Plus, Info, Scale, ShoppingBag, AlertTriangle } from 'lucide-react';
-import { Product } from '../data/products';
+import { Product } from '../../data/products';
 import ProductPlaceholderImage from './ProductPlaceholderImage';
 
 interface CompareProductsModalProps {
