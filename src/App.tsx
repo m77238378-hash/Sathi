@@ -25,6 +25,7 @@ import {
   ArrowRight,
   Activity,
   Heart,
+  Wind,
   HelpCircle,
   RefreshCw,
   UserCircle,
@@ -60,12 +61,14 @@ import DoshaDistributionChart, { QuizCompletion } from './components/DoshaDistri
 import EducationalWorkshops from './components/EducationalWorkshops';
 import GoogleMeetConsultation from './components/GoogleMeetConsultation';
 import CompoundingWorkerPool from './components/CompoundingWorkerPool';
-import { generateReportPDF } from './utils/pdfGenerator';
+import { generateReportPDF, generateProductPDF } from './utils/pdfGenerator';
 import GoogleDriveVault from './components/GoogleDriveVault';
 import GoogleContactsDirectory from './components/GoogleContactsDirectory';
 import { uploadReportToDrive } from './utils/googleDrive';
 import DailyAyurvedicWisdom from './components/DailyAyurvedicWisdom';
 import SeasonalWellnessBanner from './components/SeasonalWellnessBanner';
+import YogicKriyaPranayam from './components/YogicKriyaPranayam';
+import AboutUsSection from './components/AboutUsSection';
 import { motion, AnimatePresence } from 'motion/react';
 
 const QUIZ_QUESTIONS = [
@@ -379,6 +382,7 @@ export default function App() {
       e.currentTarget.blur();
     }
   };
+  const [currentTab, setCurrentTab] = useState<'catalog' | 'yoga' | 'about'>('catalog');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedIndication, setSelectedIndication] = useState('all');
   const [selectedSeason, setSelectedSeason] = useState('all');
@@ -1128,6 +1132,47 @@ export default function App() {
         </div>
       </header>
 
+      {/* Sticky Main Navigation Selector */}
+      <nav id="mab-main-navigation" className="bg-amber-950 text-[#faf2e6] border-b border-amber-900/35 sticky top-0 z-40 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 flex justify-start items-center">
+          <button
+            onClick={() => setCurrentTab('catalog')}
+            className={`px-5 py-4 font-serif font-black text-xs md:text-sm uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 border-b-2 outline-none border-solid ${
+              currentTab === 'catalog'
+                ? 'border-amber-400 text-amber-300 bg-white/5 font-extrabold'
+                : 'border-transparent text-stone-300 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            Remedy Catalog
+          </button>
+          
+          <button
+            onClick={() => setCurrentTab('yoga')}
+            className={`px-5 py-4 font-serif font-black text-xs md:text-sm uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 border-b-2 outline-none border-solid ${
+              currentTab === 'yoga'
+                ? 'border-amber-400 text-amber-300 bg-white/5 font-extrabold'
+                : 'border-transparent text-stone-300 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Wind className="w-4 h-4 text-amber-400" />
+            Yogic Kriya &amp; Pranayam
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('about')}
+            className={`px-5 py-4 font-serif font-black text-xs md:text-sm uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 border-b-2 outline-none border-solid ${
+              currentTab === 'about'
+                ? 'border-amber-400 text-amber-300 bg-white/5 font-extrabold'
+                : 'border-transparent text-stone-300 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Info className="w-4 h-4 text-amber-400" />
+            About Us
+          </button>
+        </div>
+      </nav>
+
       {/* 2. Educational Heritage Notice Banner */}
       <section className="bg-gradient-to-r from-amber-500/5 via-amber-600/10 to-amber-700/5 py-4 border-b border-amber-900/5">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-serif text-amber-950">
@@ -1154,7 +1199,9 @@ export default function App() {
       {/* 3. Main Search & Catalog Hub */}
       <main className="max-w-7xl mx-auto px-4 py-8">
 
-        {/* Personalized Nadi Pariksha Quiz */}
+        {currentTab === 'catalog' && (
+          <>
+            {/* Personalized Nadi Pariksha Quiz */}
         <section id="nadi-pariksha-quiz" className="mb-10 bg-white rounded-2xl border border-amber-950/15 overflow-hidden shadow-xs">
           
           {/* Header Strip */}
@@ -2435,6 +2482,16 @@ export default function App() {
         <div className="mt-10">
           <EducationalWorkshops />
         </div>
+          </>
+        )}
+
+        {currentTab === 'yoga' && (
+          <YogicKriyaPranayam activeRituId={selectedSeason} />
+        )}
+
+        {currentTab === 'about' && (
+          <AboutUsSection />
+        )}
 
       </main>
 
@@ -2479,7 +2536,7 @@ export default function App() {
                   <p className="text-xs text-[#a16207] font-serif font-medium italic">
                     Devanagari Sanskrit: {selectedProduct.sanskritName} Formula
                   </p>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <p className="text-2xl font-bold font-mono text-stone-900">
                       ₹{selectedProduct.price}
                     </p>
@@ -2490,6 +2547,15 @@ export default function App() {
                     >
                       <Share2 className="w-3.5 h-3.5 text-amber-800" />
                       {shareStatus || 'Share'}
+                    </button>
+                    <button
+                      onClick={() => generateProductPDF(selectedProduct)}
+                      id="mab-download-recipe-pdf"
+                      className="inline-flex items-center gap-1.5 bg-[#fbf9f4] hover:bg-amber-100 text-amber-900 border border-amber-900/15 px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all cursor-pointer shadow-3xs"
+                      title="Generate printer-friendly PDF Recipe Sheet"
+                    >
+                      <Printer className="w-3.5 h-3.5 text-amber-800" />
+                      Get Recipe PDF
                     </button>
                   </div>
                 </div>
@@ -3390,14 +3456,46 @@ export default function App() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <h5 className="font-serif font-extrabold text-amber-200">AUTHENTIC REASSURANCE</h5>
-            <ul className="space-y-1.5 text-[#a49180]">
-              <li className="flex items-center gap-1">✓ Ancient Firewood Furnaces</li>
-              <li className="flex items-center gap-1">✓ Certified Organic Shodhit Minerals</li>
-              <li className="flex items-center gap-1">✓ Non-Synthetic Glass Formulations</li>
-              <li className="flex items-center gap-1">✓ Verified Doctor Sponsoring</li>
-            </ul>
+          <div className="space-y-4">
+            <div>
+              <h5 className="font-serif font-extrabold text-amber-200 text-xs uppercase tracking-wider mb-2">AUTHENTIC REASSURANCE</h5>
+              <ul className="space-y-1 text-[#a49180] text-xs">
+                <li className="flex items-center gap-1">✓ Ancient Firewood Furnaces</li>
+                <li className="flex items-center gap-1">✓ Certified Organic Shodhit Minerals</li>
+                <li className="flex items-center gap-1">✓ Non-Synthetic Glass Formulations</li>
+                <li className="flex items-center gap-1">✓ Verified Doctor Sponsoring</li>
+              </ul>
+            </div>
+
+            <div className="pt-3 border-t border-amber-950/40">
+              <h5 className="font-serif font-extrabold text-amber-200 text-xs uppercase tracking-wider mb-2">Ayurveda Products &amp; Remedies</h5>
+              <ul className="space-y-2 text-[#ead8c5] text-xs">
+                <li>
+                  <a href="https://ayush.gov.in/" target="_blank" rel="noopener noreferrer" className="text-amber-300 hover:underline font-bold block">
+                    Ayush Ministry ↗
+                  </a>
+                  <span className="text-[#a49180] text-[10.5px] leading-tight block">Government of India’s official Ayurveda resources.</span>
+                </li>
+                <li>
+                  <a href="https://www.patanjaliayurved.net/" target="_blank" rel="noopener noreferrer" className="text-amber-300 hover:underline font-bold block">
+                    Patanjali Ayurveda ↗
+                  </a>
+                  <span className="text-[#a49180] text-[10.5px] leading-tight block">Widely available Ayurvedic medicines and wellness products.</span>
+                </li>
+                <li>
+                  <a href="https://www.keralaayurveda.biz/" target="_blank" rel="noopener noreferrer" className="text-amber-300 hover:underline font-bold block">
+                    Kerala Ayurveda ↗
+                  </a>
+                  <span className="text-[#a49180] text-[10.5px] leading-tight block">Trusted brand for classical formulations.</span>
+                </li>
+                <li>
+                  <a href="https://himalayawellness.in/" target="_blank" rel="noopener noreferrer" className="text-amber-300 hover:underline font-bold block">
+                    Himalaya Wellness ↗
+                  </a>
+                  <span className="text-[#a49180] text-[10.5px] leading-tight block">Herbal supplements and personal care.</span>
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div className="space-y-3">

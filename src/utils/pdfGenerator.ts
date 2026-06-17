@@ -348,3 +348,256 @@ export const generateReportPDF = (
   doc.save(safeFilename);
   return doc;
 };
+
+export const generateProductPDF = (product: Product) => {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  // Color Palette Constants
+  const cPrimary = [44, 27, 16]; // #2c1b10 - Deep Warm Charcoal
+  const cAccent = [138, 90, 54]; // #8a5a36 - Warm Amber
+  const cBody = [70, 70, 70];    // Slate body
+
+  const marginX = 20;
+  const printableWidth = 170; // 210 - 40
+  let currentY = 18;
+
+  const addWrappedText = (
+    text: string, 
+    x: number, 
+    y: number, 
+    maxWidth: number, 
+    lineHeight: number, 
+    align: 'left' | 'center' = 'left'
+  ) => {
+    const lines = doc.splitTextToSize(text, maxWidth);
+    let lastY = y;
+    lines.forEach((line: string) => {
+      if (align === 'center') {
+        doc.text(line, x + maxWidth / 2, lastY, { align: 'center' });
+      } else {
+        doc.text(line, x, lastY);
+      }
+      lastY += lineHeight;
+    });
+    return lastY;
+  };
+
+  // Double Golden-Beige Border Frame
+  doc.setDrawColor(218, 204, 182); // soft gold
+  doc.setLineWidth(0.8);
+  doc.rect(10, 10, 190, 277);
+  doc.setLineWidth(0.25);
+  doc.rect(11.5, 11.5, 187, 274);
+
+  // Elegant Header
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text('MANGALAM AYURVEDA AUSHADH BHANDAR', 105, currentY, { align: 'center' });
+  currentY += 5.5;
+
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(cAccent[0], cAccent[1], cAccent[2]);
+  doc.text('TRADITIONAL RISHIKESH BHESHAJA SHALA  |  AUTHENTIC FORMULATION SHEET', 105, currentY, { align: 'center' });
+  currentY += 7;
+
+  // Divider Line
+  doc.setDrawColor(138, 90, 54);
+  doc.setLineWidth(0.5);
+  doc.line(marginX, currentY, 190, currentY);
+  currentY += 8;
+
+  // Remedy Main Title Card
+  doc.setFillColor(252, 250, 245);
+  doc.rect(marginX, currentY, printableWidth, 24, 'F');
+  doc.setDrawColor(225, 218, 205);
+  doc.rect(marginX, currentY, printableWidth, 24, 'S');
+
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.text(product.name.toUpperCase(), marginX + 6, currentY + 7);
+
+  doc.setFont('Helvetica', 'oblique');
+  doc.setFontSize(9);
+  doc.setTextColor(cAccent[0], cAccent[1], cAccent[2]);
+  doc.text(`Devanagari Formula: ${product.sanskritName}  |  Category: ${product.category.replace('-', ' & ')}`, marginX + 6, currentY + 12);
+
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(cBody[0], cBody[1], cBody[2]);
+  doc.text(`Compounded Batch Value Pricing: Rs. ${product.price} (Standard container package)`, marginX + 6, currentY + 18.5);
+  
+  currentY += 32;
+
+  // Traditional Narrative Section
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.text('I. TRADITIONAL THERAPEUTIC NARRATIVE', marginX, currentY);
+  currentY += 5;
+
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(cBody[0], cBody[1], cBody[2]);
+  currentY = addWrappedText(product.description, marginX, currentY, printableWidth, 4.2);
+  currentY += 4;
+
+  // Indications section
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.text('II. SPECIFIC THERAPEUTIC INDICATIONS & CLINICAL SCOPE', marginX, currentY);
+  currentY += 5.5;
+
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(cBody[0], cBody[1], cBody[2]);
+  const indicationsText = `${product.indications.join(', ')}. Classically prescribed for balancing metabolic imbalances, restoring Tridosha equilibrium (Vata-Pitta-Kapha) and supporting tissue (Dhatu) longevity.`;
+  currentY = addWrappedText(indicationsText, marginX, currentY, printableWidth, 4.2);
+  currentY += 6;
+
+  // Complete Botanical / Mineral Proportions Section (The Recipe)
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.text('III. BOTANICAL INGREDIENTS & FORMULATION RECIPE PROPORTIONS', marginX, currentY);
+  currentY += 5.5;
+
+  // Draw Table Header
+  doc.setFillColor(245, 240, 230);
+  doc.rect(marginX, currentY, printableWidth, 6.5, 'F');
+  doc.setDrawColor(210, 200, 185);
+  doc.rect(marginX, currentY, printableWidth, 6.5, 'S');
+
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.text('HERBAL CONSTITUENT (DRAVYA)', marginX + 3, currentY + 4.5);
+  doc.text('PROPORTION', marginX + 55, currentY + 4.5);
+  doc.text('THERAPEUTIC FUNCTION & BIO-AVAILABILITY (GOONA)', marginX + 80, currentY + 4.5);
+
+  currentY += 6.5;
+
+  // List Ingredients in a nice table grid
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(8);
+  product.ingredients.forEach((ing) => {
+    doc.setFillColor(255, 255, 255);
+    const benefitLines = doc.splitTextToSize(ing.benefit, printableWidth - 83);
+    const rowHeight = Math.max(7, benefitLines.length * 3.8 + 2.5);
+
+    doc.rect(marginX, currentY, printableWidth, rowHeight, 'S');
+
+    // Herb Name Column
+    doc.setFont('Helvetica', 'bold');
+    doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+    doc.text(ing.name, marginX + 3, currentY + 4.5);
+
+    // Proportion Column
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(cAccent[0], cAccent[1], cAccent[2]);
+    doc.text(ing.proportion, marginX + 55, currentY + 4.5);
+
+    // Benefit Column (wrapped text)
+    doc.setTextColor(cBody[0], cBody[1], cBody[2]);
+    addWrappedText(ing.benefit, marginX + 80, currentY + 4.5, printableWidth - 83, 3.8);
+
+    currentY += rowHeight;
+  });
+
+  currentY += 6;
+
+  // IV. Prescribed Administration details
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.text('IV. PRESCRIBED ADMINISTRATION & SCHEDULING (ANUPANA)', marginX, currentY);
+  currentY += 5;
+
+  const halfWidth = (printableWidth - 4) / 2;
+  
+  // Dosage box
+  doc.setFillColor(251, 249, 244);
+  doc.setDrawColor(230, 222, 210);
+  doc.rect(marginX, currentY, halfWidth, 18, 'F');
+  doc.rect(marginX, currentY, halfWidth, 18, 'S');
+
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.text('STANDARD MATRA (DOSAGE):', marginX + 4, currentY + 5);
+  doc.setFont('Helvetica', 'normal');
+  doc.setTextColor(cBody[0], cBody[1], cBody[2]);
+  addWrappedText(product.dosage, marginX + 4, currentY + 9, halfWidth - 8, 3.5);
+
+  // Administration carrier box
+  doc.setFillColor(242, 250, 244);
+  doc.setDrawColor(215, 235, 220);
+  doc.rect(marginX + halfWidth + 4, currentY, halfWidth, 18, 'F');
+  doc.rect(marginX + halfWidth + 4, currentY, halfWidth, 18, 'S');
+
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.text('RECOMMENDED VEHICLE MEDIUM (ANUPANA):', marginX + halfWidth + 8, currentY + 5);
+  doc.setFont('Helvetica', 'normal');
+  doc.setTextColor(cBody[0], cBody[1], cBody[2]);
+  addWrappedText(product.administration, marginX + halfWidth + 8, currentY + 9, halfWidth - 8, 3.5);
+
+  currentY += 24;
+
+  // Shastra Seal
+  doc.setDrawColor(220, 210, 195);
+  doc.line(marginX, currentY, 190, currentY);
+  currentY += 6;
+
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.text('MANGALAM CLINICAL INTEGRITY & RECONSTRUCTION PHARMACY', marginX, currentY);
+  
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(cBody[0], cBody[1], cBody[2]);
+  doc.text('This formula profile card is extracted from the digital repository of classic Ayurvedic compound recipes.', marginX, currentY + 4);
+  doc.text('Consult a registered Ayurvedic Vaidya for comprehensive Prakriti-specific dosage adjustments.', marginX, currentY + 7.5);
+
+  // Stamp Box
+  const sigX = 145;
+  const sigY = currentY - 2;
+  doc.setDrawColor(138, 90, 54, 0.4);
+  doc.setFillColor(253, 252, 248);
+  doc.rect(sigX, sigY, 35, 17, 'F');
+  doc.rect(sigX, sigY, 35, 17, 'S');
+
+  doc.setTextColor(cAccent[0], cAccent[1], cAccent[2]);
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(6);
+  doc.text('VERIFIED REMEDY', sigX + 17.5, sigY + 4, { align: 'center' });
+  doc.setTextColor(cPrimary[0], cPrimary[1], cPrimary[2]);
+  doc.setFont('Helvetica', 'oblique');
+  doc.setFontSize(7.5);
+  doc.text('Dr. S. C. Gaur', sigX + 17.5, sigY + 10, { align: 'center' });
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(5);
+  doc.setTextColor(cBody[0], cBody[1], cBody[2]);
+  doc.text('Vaidya Guardian Stamp', sigX + 17.5, sigY + 14, { align: 'center' });
+
+  // Page 1 Footer
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(cAccent[0], cAccent[1], cAccent[2]);
+  doc.text('MANGALAM AYURVEDA HERITAGE RECONSTRUCTION DESK  |  RISHIKESH, INDIA  |  TEL: +91 9258240603', 105, 280, { align: 'center' });
+
+  // Trigger download
+  const safeFilename = `Mangalam_Recipe_${product.name.replace(/\s+/g, '_')}_Formula.pdf`;
+  doc.save(safeFilename);
+  return doc;
+};
