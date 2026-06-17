@@ -40,7 +40,8 @@ import {
   ArrowLeftRight,
   Scale,
   Share2,
-  AlertTriangle
+  AlertTriangle,
+  ArrowDownAZ
 } from 'lucide-react';
 import { initializeApp, getApp, getApps } from 'firebase/app';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
@@ -392,6 +393,7 @@ export default function App() {
   const [selectedSeason, setSelectedSeason] = useState('all');
   const [isFeaturedOnly, setIsFeaturedOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'alphabetical'>('default');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [shareStatus, setShareStatus] = useState<string>('');
   const [cart, setCart] = useState<{ product: Product; quantity: number; selectedSize: string }[]>([]);
@@ -858,9 +860,9 @@ export default function App() {
     }
   }, [activeQuizIndex, quizAnswers, hasSavedCurrentResult, quizHistory, user]);
 
-  // Filter products based on search and selected attributes
+  // Filter and sort products based on search, selected attributes, and sort selection
   const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter(product => {
+    const sorted = PRODUCTS.filter(product => {
       // Search term matching (Name, Sanskrit, Description, Ingredients, Indication)
       const matchesSearch = 
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -876,7 +878,16 @@ export default function App() {
 
       return matchesSearch && matchesCategory && matchesIndication && matchesFeatured && matchesSeason;
     });
-  }, [searchQuery, selectedCategory, selectedIndication, isFeaturedOnly, selectedSeason]);
+
+    if (sortBy === 'price-asc') {
+      return [...sorted].sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-desc') {
+      return [...sorted].sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'alphabetical') {
+      return [...sorted].sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return sorted;
+  }, [searchQuery, selectedCategory, selectedIndication, isFeaturedOnly, selectedSeason, sortBy]);
 
   // Cart Management
   const addToCart = (product: Product, size: string) => {
@@ -2074,30 +2085,53 @@ export default function App() {
                 )}
               </div>
 
-              {/* Layout Toggle Action */}
-              <div className="flex items-center gap-2 border border-stone-200 rounded-md p-0.5 shrink-0 bg-stone-50">
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-1.5 rounded-xs transition-all ${
-                    viewMode === 'list'
-                      ? 'bg-amber-900 text-[#faf2e6] shadow-xs'
-                      : 'text-stone-500 hover:text-stone-800'
-                  }`}
-                  title="List View (Side-by-Side Image Placeholders)"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded-xs transition-all ${
-                    viewMode === 'grid'
-                      ? 'bg-amber-900 text-[#faf2e6] shadow-xs'
-                      : 'text-stone-500 hover:text-stone-800'
-                  }`}
-                  title="Grid View (Top Visual Placeholders)"
-                >
-                  <Grid className="w-4 h-4" />
-                </button>
+              {/* Sorting & Layout Toggle Action Block */}
+              <div id="mab-catalog-controls" className="flex flex-wrap items-center gap-4 w-full sm:w-auto overflow-visible justify-end">
+                {/* Sorting Select Dropdown */}
+                <div id="mab-catalog-sort-wrapper" className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-stone-550 flex items-center gap-1 shrink-0 font-sans">
+                    <ArrowDownAZ className="w-3.5 h-3.5 text-amber-800" /> Sort:
+                  </span>
+                  <select
+                    id="mab-catalog-sort-dropdown"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as any)}
+                    className="text-xs bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded-md py-1.5 px-3 focus:outline-none focus:border-amber-800 focus:ring-1 focus:ring-amber-800/10 text-stone-700 cursor-pointer font-sans transition-all"
+                  >
+                    <option value="default">Default / Recom.</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="alphabetical">Alphabetical (A-Z)</option>
+                  </select>
+                </div>
+
+                {/* Layout Toggle Option */}
+                <div id="mab-catalog-view-toggle" className="flex items-center gap-2 border border-stone-200 rounded-md p-0.5 shrink-0 bg-stone-50">
+                  <button
+                    id="mab-view-list-btn"
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 rounded-xs transition-all cursor-pointer ${
+                      viewMode === 'list'
+                        ? 'bg-amber-900 text-[#faf2e6] shadow-xs'
+                        : 'text-stone-500 hover:text-stone-800'
+                    }`}
+                    title="List View (Side-by-Side Image Placeholders)"
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                  <button
+                    id="mab-view-grid-btn"
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 rounded-xs transition-all cursor-pointer ${
+                      viewMode === 'grid'
+                        ? 'bg-amber-900 text-[#faf2e6] shadow-xs'
+                        : 'text-stone-500 hover:text-stone-800'
+                    }`}
+                    title="Grid View (Top Visual Placeholders)"
+                  >
+                    <Grid className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
 
