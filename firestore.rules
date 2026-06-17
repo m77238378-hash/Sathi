@@ -75,6 +75,15 @@ service cloud.firestore {
         && data.createdAt == request.time;
     }
 
+    function isValidReferral(data) {
+      return data.referrerId is string && data.referrerId.size() > 0 && data.referrerId.size() <= 128
+        && data.referrerName is string && data.referrerName.size() > 0 && data.referrerName.size() <= 128
+        && data.friendName is string && data.friendName.size() > 0 && data.friendName.size() <= 128
+        && data.friendEmail is string && data.friendEmail.size() > 0 && data.friendEmail.size() <= 128
+        && data.status in ['invited', 'joined']
+        && data.createdAt == request.time;
+    }
+
     // Collection Security Rules
 
     // 1. Bookings collection: Only the matched patient owner can read, create, and update
@@ -136,6 +145,38 @@ service cloud.firestore {
         && incoming().productId == existing().productId
         && incoming().diff(existing()).affectedKeys().hasOnly(['comment', 'rating', 'displayName']);
       allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // 6. Referrals collection: Tracking of invitations and sign-ups
+    match /referrals/{referralId} {
+      allow get: if isSignedIn() && (existing().referrerId == request.auth.uid || existing().friendEmail == request.auth.token.email);
+      allow list: if isSignedIn() && (resource.data.referrerId == request.auth.uid || resource.data.friendEmail == request.auth.token.email);
+      allow create: if isSignedIn() && isValidId(referralId) && isValidReferral(incoming()) && incoming().referrerId == request.auth.uid;
+      allow update: if (
+        isSignedIn()
+        && isValidId(referralId)
+        && incoming().referrerId == existing().referrerId
+        && incoming().friendEmail == existing().friendEmail
+        && incoming().friendName == existing().friendName
+        && incoming().createdAt == existing().createdAt
+        && (
+          // Action 1: Referrer updates the status
+          (existing().referrerId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['status'])) ||
+          // Action 2: Invitee converts to "joined"
+          (incoming().status == 'joined' && incoming().diff(existing()).affectedKeys().hasOnly(['status']))
+        )
+      ) || (
+        // Allow unauthenticated conversion (e.g. from the join us screen) but only to set status = 'joined'
+        !isSignedIn()
+        && isValidId(referralId)
+        && incoming().referrerId == existing().referrerId
+        && incoming().friendEmail == existing().friendEmail
+        && incoming().friendName == existing().friendName
+        && incoming().createdAt == existing().createdAt
+        && incoming().status == 'joined'
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status'])
+      );
+      allow delete: if isSignedIn() && existing().referrerId == request.auth.uid;
     }
 
   }

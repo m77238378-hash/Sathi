@@ -70,6 +70,20 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of review submission" }
       },
       "required": ["productId", "userId", "displayName", "rating", "comment", "createdAt"]
+    },
+    "referral": {
+      "title": "Referral Record",
+      "description": "A record tracking a referred friend and referral conversion status.",
+      "type": "object",
+      "properties": {
+        "referrerId": { "type": "string", "description": "UID of the user who made the referral" },
+        "referrerName": { "type": "string", "description": "Name of the referring user" },
+        "friendName": { "type": "string", "description": "Name of the invited friend" },
+        "friendEmail": { "type": "string", "format": "email", "description": "Email address of the invited friend" },
+        "status": { "type": "string", "enum": ["invited", "joined"], "description": "Current tracking status of the referral" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp when invitation was created" }
+      },
+      "required": ["referrerId", "referrerName", "friendName", "friendEmail", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -92,6 +106,10 @@
     "/remedy_feedbacks/{feedbackId}": {
       "schema": "remedy_feedback",
       "description": "Persistent customer reviews and efficacy feedback for each formula."
+    },
+    "/referrals/{referralId}": {
+      "schema": "referral",
+      "description": "Referral tracking records for users who invite friends to join."
     }
   }
 }

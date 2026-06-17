@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Search, 
+  Home,
   Filter, 
   Calendar, 
   MapPin, 
@@ -10,6 +11,7 @@ import {
   ShoppingBag, 
   CheckCircle2, 
   Info, 
+  Users,
   ChevronRight, 
   X, 
   Printer, 
@@ -69,6 +71,8 @@ import DailyAyurvedicWisdom from './components/DailyAyurvedicWisdom';
 import SeasonalWellnessBanner from './components/SeasonalWellnessBanner';
 import YogicKriyaPranayam from './components/YogicKriyaPranayam';
 import AboutUsSection from './components/AboutUsSection';
+import JoinUsSection from './components/JoinUsSection';
+import HomeSection from './components/HomeSection';
 import { motion, AnimatePresence } from 'motion/react';
 
 const QUIZ_QUESTIONS = [
@@ -382,7 +386,7 @@ export default function App() {
       e.currentTarget.blur();
     }
   };
-  const [currentTab, setCurrentTab] = useState<'catalog' | 'yoga' | 'about'>('catalog');
+  const [currentTab, setCurrentTab] = useState<'home' | 'catalog' | 'yoga' | 'about' | 'join'>('home');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedIndication, setSelectedIndication] = useState('all');
   const [selectedSeason, setSelectedSeason] = useState('all');
@@ -1136,6 +1140,18 @@ export default function App() {
       <nav id="mab-main-navigation" className="bg-amber-950 text-[#faf2e6] border-b border-amber-900/35 sticky top-0 z-40 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 flex justify-start items-center">
           <button
+            onClick={() => setCurrentTab('home')}
+            className={`px-5 py-4 font-serif font-black text-xs md:text-sm uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 border-b-2 outline-none border-solid ${
+              currentTab === 'home'
+                ? 'border-amber-400 text-amber-300 bg-white/5 font-extrabold'
+                : 'border-transparent text-stone-300 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Home className="w-4 h-4 text-amber-400" />
+            Home
+          </button>
+
+          <button
             onClick={() => setCurrentTab('catalog')}
             className={`px-5 py-4 font-serif font-black text-xs md:text-sm uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 border-b-2 outline-none border-solid ${
               currentTab === 'catalog'
@@ -1170,6 +1186,19 @@ export default function App() {
             <Info className="w-4 h-4 text-amber-400" />
             About Us
           </button>
+
+          <button
+            onClick={() => setCurrentTab('join')}
+            id="mab-nav-join-tab"
+            className={`px-5 py-4 font-serif font-black text-xs md:text-sm uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 border-b-2 outline-none border-solid ${
+              currentTab === 'join'
+                ? 'border-amber-400 text-amber-300 bg-white/5 font-extrabold'
+                : 'border-transparent text-stone-300 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Users className="w-4 h-4 text-amber-400" />
+            Join Us
+          </button>
         </div>
       </nav>
 
@@ -1198,6 +1227,14 @@ export default function App() {
 
       {/* 3. Main Search & Catalog Hub */}
       <main className="max-w-7xl mx-auto px-4 py-8">
+
+        {currentTab === 'home' && (
+          <HomeSection 
+            onTabChange={(tab) => setCurrentTab(tab)} 
+            activeRituId={selectedSeason}
+            userEmail={user?.email || undefined}
+          />
+        )}
 
         {currentTab === 'catalog' && (
           <>
@@ -2491,6 +2528,16 @@ export default function App() {
 
         {currentTab === 'about' && (
           <AboutUsSection />
+        )}
+
+        {currentTab === 'join' && (
+          <JoinUsSection 
+            user={user} 
+            onSignInClick={() => {
+              setAuthModalMode('signin');
+              setIsAuthModalOpen(true);
+            }} 
+          />
         )}
 
       </main>
